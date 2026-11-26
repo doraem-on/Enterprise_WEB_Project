@@ -1,0 +1,10 @@
+[
+ {"query":"I repaired wooden furniture and want to build cabinets", "expected":"Woodcraft & furniture repair"},
+ {"query":"I enjoy growing vegetables, planting seeds and making compost", "expected":"Grow together"},
+ {"query":"I want to learn computers, spreadsheets and household budgeting", "expected":"Everyday digital skills"},
+ {"query":"I like sketching, colours and creating paintings", "expected":"Art & expression"},
+ {"query":"I want gentle breathing practice, reflection and stretching", "expected":"Movement & mindfulness"},
+ {"query":"I want to read stories and improve my literacy", "expected":"Reading circle"},
+ {"query":"I can sew clothing and would like to learn tailoring", "expected":"Stitch a new chapter"},
+ {"query":"I enjoy team sports and want to build fitness", "expected":"Team games & fitness"}
+]

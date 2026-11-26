@@ -1,0 +1,7 @@
+/target/
+/models/*
+!/models/.gitkeep
+/.tools/
+.env
+*.log
+.DS_Store

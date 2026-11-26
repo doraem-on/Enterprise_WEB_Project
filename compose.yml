@@ -1,0 +1,31 @@
+services:
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: reconnect
+      POSTGRES_USER: reconnect
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD:-local-reconnect-db}
+    volumes:
+      - reconnect-data:/var/lib/postgresql/data
+    healthcheck:
+      test: [CMD-SHELL, "pg_isready -U reconnect -d reconnect"]
+      interval: 5s
+      timeout: 3s
+      retries: 15
+  app:
+    build: .
+    ports:
+      - "127.0.0.1:8080:8080"
+    environment:
+      DATABASE_URL: jdbc:postgresql://db:5432/reconnect
+      DATABASE_USER: reconnect
+      DATABASE_PASSWORD: ${DATABASE_PASSWORD:-local-reconnect-db}
+      DEMO_MODE: "true"
+      MODEL_DIR: /app/models
+    volumes:
+      - ./models:/app/models:ro
+    depends_on:
+      db:
+        condition: service_healthy
+volumes:
+  reconnect-data:
