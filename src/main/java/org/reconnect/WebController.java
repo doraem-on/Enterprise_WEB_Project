@@ -85,6 +85,7 @@ public class WebController {
   @GetMapping("/dashboard")
   String dashboard(Model m, Principal principal) {
     var a = who(principal);
+    if (a.role().equals("NGO")) return "redirect:/partners";
     var es = p.enrollments(a);
     m.addAttribute("people", p.participants(a));
     m.addAttribute("programs", p.programs("", ""));
@@ -395,6 +396,12 @@ public class WebController {
                                   x.get("id"))
                           == 0)
               .toList();
+      m.addAttribute(
+          "myRatings",
+          p.rows(
+              "select f.*,pr.title from recommendation_feedback f join programs pr on"
+                  + " pr.id=f.program_id where participant_id=?",
+              pid));
       m.addAttribute("matches", ml.rank(person, available));
       m.addAttribute("careers", ml.rank(person, CareerData.items()));
     }
@@ -595,7 +602,8 @@ public class WebController {
     var a = who(principal);
     p.role(a, "ADMIN");
     p.require(
-        Set.of("ADMIN", "OFFICER", "INSTRUCTOR", "PARTICIPANT").contains(role), "Invalid role");
+        Set.of("ADMIN", "OFFICER", "INSTRUCTOR", "PARTICIPANT", "NGO").contains(role),
+        "Invalid role");
     p.require(
         password.length() >= 12 && password.length() <= 72,
         "Password must contain 12–72 characters");

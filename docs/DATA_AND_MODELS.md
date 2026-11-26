@@ -24,4 +24,12 @@ Timefold is a constraint optimizer, not a trained ML model. Each active program 
 
 ## Completion and credentials
 
-A certificate requires attendance at the program's configured number of sessions plus a knowledge-check score of at least 70%. The current knowledge check is one question, so its result is 0 or 100; this is a prototype learning check, not a validated competency assessment. Existing skills are self-reported. Certificates are internal completion records, not accredited qualifications. Public verification discloses only credential ID, program, and issue date; identifying profiles require authentication.
+A new certificate requires attendance at the program's configured number of sessions, reading all required lessons, passing each required lesson quiz at 70% or above, and passing each required assignment/practical assessment at 70% or above. Quizzes support multiple questions and repeated attempts. Staff assess written responses or record observations against practical rubrics; this is not a validated competency instrument. Existing certificates remain valid after new curriculum is introduced. Existing skills are self-reported. Certificates are internal completion records, not accredited qualifications. Public verification discloses only credential ID, program, and issue date; identifying profiles require authentication.
+
+## Feedback and reviewed evaluation
+
+Participants can explicitly opt into a 1–5 relevance rating with an optional note, replace that rating, or withdraw it. Ratings are aggregated separately from benchmark metrics; they do not automatically retrain the model or affect access decisions.
+
+Staff and instructors author de-identified relevance queries, expected programs, and rationales. A different account must validate the label before it is included in a benchmark. Runs persist top-1 matches, hit@5, a keyword baseline, model status, and per-case query/expected/predicted results. This supports an independent-review process; distinct accounts alone do not prove independent human judgement. Representative labels, held-out evaluation, multilingual validation and a real relevance-feedback collection period remain institutional evaluation work. No benchmark data or human ratings are fabricated by the demo seed.
+
+The eight committed authored smoke cases remain development tests, not the reviewed benchmark. Their current reports are generated under `target/` during tests. Interface translation does not make MiniLM a validated Hindi/Punjabi recommender.

@@ -126,11 +126,15 @@ public class Platform {
         "select e.*,p.title,p.category,p.duration,t.name"
             + " participant,t.reference,t.account_id,(select count(*) from attendance at join"
             + " sessions s on at.session_id=s.id where s.program_id=e.program_id and"
-            + " at.participant_id=e.participant_id and at.present) attended,(select max(score) from"
-            + " assessments x where x.program_id=e.program_id and"
-            + " x.participant_id=e.participant_id) score,c.id certificate_id from enrollments e"
-            + " join programs p on e.program_id=p.id join participants t on e.participant_id=t.id"
-            + " left join certificates c on c.enrollment_id=e.id where "
+            + " at.participant_id=e.participant_id and at.present) attended,coalesce((select"
+            + " round(avg(coalesce((select max(q.score) from quiz_attempts q where q.lesson_id=l.id"
+            + " and q.participant_id=e.participant_id),0))) from lessons l where"
+            + " l.program_id=e.program_id and l.required and exists(select 1 from quiz_questions qq"
+            + " where qq.lesson_id=l.id)),(select max(score) from assessments x where"
+            + " x.program_id=e.program_id and x.participant_id=e.participant_id)) score,c.id"
+            + " certificate_id from enrollments e join programs p on e.program_id=p.id join"
+            + " participants t on e.participant_id=t.id left join certificates c on"
+            + " c.enrollment_id=e.id where "
             + where
             + " order by e.created_at desc");
   }
@@ -340,6 +344,7 @@ public class Platform {
       role(a, "ADMIN", "OFFICER");
       require(
           Set.of("REQUESTED", "WAITLISTED").contains(status), "This request was already handled");
+      require(p.get("status").equals("ACTIVE"), "Restore the program before approving enrollment");
       require(
           hasSeat(programId, num(p, "capacity")),
           "Program is full; keep this participant on the waiting list");
@@ -366,10 +371,45 @@ public class Platform {
               Integer.class,
               pid,
               programId);
+      long curriculumQuizzes =
+          db.queryForObject(
+              "select count(*) from quiz_questions q join lessons l on l.id=q.lesson_id where"
+                  + " l.program_id=?",
+              Long.class,
+              programId);
       require(
-          attended >= num(p, "duration") && score >= 70,
+          attended >= num(p, "duration") && (curriculumQuizzes > 0 || score >= 70),
           "Completion requires all planned sessions attended and an assessment score of at least"
               + " 70%");
+      long unread =
+          db.queryForObject(
+              "select count(*) from lessons l where l.program_id=? and l.required and not"
+                  + " exists(select 1 from lesson_progress lp where lp.lesson_id=l.id and"
+                  + " lp.participant_id=?)",
+              Long.class,
+              programId,
+              pid);
+      long failedQuizzes =
+          db.queryForObject(
+              "select count(*) from lessons l where l.program_id=? and l.required and exists(select"
+                  + " 1 from quiz_questions q where q.lesson_id=l.id) and not exists(select 1 from"
+                  + " quiz_attempts q where q.lesson_id=l.id and q.participant_id=? and"
+                  + " q.score>=70)",
+              Long.class,
+              programId,
+              pid);
+      long pendingWork =
+          db.queryForObject(
+              "select count(*) from assignments a where a.program_id=? and a.required and not"
+                  + " exists(select 1 from submissions s where s.assignment_id=a.id and"
+                  + " s.participant_id=? and s.status='PASSED')",
+              Long.class,
+              programId,
+              pid);
+      require(
+          unread == 0 && failedQuizzes == 0 && pendingWork == 0,
+          "Complete all required lessons, pass their quizzes, and obtain instructor approval for"
+              + " required assignments");
       db.update("update enrollments set status='COMPLETED' where id=?", id);
       db.update(
           "insert into certificates(id,enrollment_id,issued_by) values(?,?,?)",

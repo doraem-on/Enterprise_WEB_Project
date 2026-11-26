@@ -33,8 +33,11 @@ public class SecurityConfig {
   }
 
   @Bean
-  SecurityFilterChain security(HttpSecurity http) throws Exception {
-    return http.authorizeHttpRequests(
+  SecurityFilterChain security(HttpSecurity http, JdbcTemplate db) throws Exception {
+    return http.addFilterAfter(
+            new AccountAccessFilter(db),
+            org.springframework.security.web.authentication.AnonymousAuthenticationFilter.class)
+        .authorizeHttpRequests(
             a ->
                 a.requestMatchers(
                         "/",

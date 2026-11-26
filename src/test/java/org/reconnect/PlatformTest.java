@@ -26,6 +26,7 @@ class PlatformTest {
   @Autowired MockMvc mvc;
   @Autowired Scheduling scheduler;
   @Autowired RecommendationEngine ml;
+  @Autowired LearningService learning;
   Platform.Actor officer, participant, instructor;
 
   @BeforeEach
@@ -35,7 +36,7 @@ class PlatformTest {
     p.db()
         .execute(
             "truncate"
-                + " accounts,participants,programs,enrollments,sessions,attendance,assessments,certificates,projects,project_members,feedback,notifications,audit_events"
+                + " accounts,participants,programs,enrollments,sessions,attendance,assessments,certificates,projects,project_members,feedback,notifications,audit_events,resources"
                 + " restart identity cascade");
     seed.run();
     officer = p.actor("officer@reconnect.local");
@@ -175,6 +176,13 @@ class PlatformTest {
     p.attendance(instructor, sid, 1, true, "Demonstrated safe measuring");
     assertThrows(Exception.class, () -> p.enrollmentAction(officer, id, "complete"));
     assertEquals(100, p.assess(participant, 1, "A"));
+    long lesson =
+        p.db().queryForObject("select id from lessons where program_id=1 limit 1", Long.class);
+    learning.read(participant, lesson);
+    var answers = new HashMap<String, String>();
+    for (var q : p.rows("select id from quiz_questions where lesson_id=?", lesson))
+      answers.put("q_" + q.get("id"), "A");
+    learning.quiz(participant, lesson, answers);
     p.enrollmentAction(instructor, id, "complete");
     assertEquals(
         1,

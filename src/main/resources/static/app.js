@@ -7,3 +7,10 @@ window.addEventListener('pageshow',()=>document.querySelectorAll('button[aria-bu
 
 document.querySelector('.mobile-close')?.addEventListener('click',()=>{document.querySelector('.sidebar').classList.remove('open');document.querySelector('.mobile-menu')?.setAttribute('aria-expanded','false');document.querySelector('.mobile-menu')?.focus();});
 document.addEventListener('keydown',event=>{if(event.key==='Escape'){document.querySelector('.sidebar')?.classList.remove('open');document.querySelector('.mobile-menu')?.setAttribute('aria-expanded','false');}});
+for(const [selector,key,style] of [['[data-text-size]','reconnect-large','large-text'],['[data-contrast]','reconnect-contrast','high-contrast']]){
+ const button=document.querySelector(selector);let enabled=false;try{enabled=localStorage.getItem(key)==='true';}catch{}
+ const apply=()=>{document.documentElement.classList.toggle(style,enabled);button?.setAttribute('aria-pressed',String(enabled));};apply();
+ button?.addEventListener('click',()=>{enabled=!enabled;try{localStorage.setItem(key,String(enabled));}catch{}apply();});
+}
+const kioskLogout=document.querySelector('#kiosk-logout');
+if(kioskLogout){let timer;const reset=()=>{clearTimeout(timer);timer=setTimeout(()=>kioskLogout.requestSubmit(),5*60*1000);};['pointerdown','keydown','touchstart'].forEach(e=>document.addEventListener(e,reset,{passive:true}));reset();}

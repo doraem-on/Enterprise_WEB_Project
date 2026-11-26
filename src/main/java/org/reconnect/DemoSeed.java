@@ -9,6 +9,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 @Component
+@org.springframework.core.annotation.Order(1)
 public class DemoSeed implements CommandLineRunner {
   final Platform p;
   final PasswordEncoder encoder;
